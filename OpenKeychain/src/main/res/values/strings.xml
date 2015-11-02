@@ -1679,6 +1679,7 @@
     <string name="share_log_dialog_cancel_button">"Cancel"</string>
     <string name="toast_wrong_mimetype">"Wrong data type, expected text!"</string>
     <string name="toast_no_text">"No text in shared data!"</string>
-    <string name="menu_uids_save">Save</string>
+    <string name="menu_uids_save">"Save"</string>
+    <string name="title_edit_identities">"Edit Identities"</string>
 
 </resources>

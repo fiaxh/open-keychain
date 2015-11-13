@@ -87,6 +87,8 @@ public class PgpDecryptVerifyOperation extends BaseOperation<PgpDecryptVerifyInp
         InputData inputData;
         OutputStream outputStream;
 
+        long startTime = System.currentTimeMillis();
+
         if (input.getInputBytes() != null) {
             byte[] inputBytes = input.getInputBytes();
             inputData = new InputData(new ByteArrayInputStream(inputBytes), inputBytes.length);
@@ -122,6 +124,8 @@ public class PgpDecryptVerifyOperation extends BaseOperation<PgpDecryptVerifyInp
             result.setOutputBytes(outputData);
         }
 
+        result.mOperationTime = System.currentTimeMillis() - startTime;
+        Log.d(Constants.TAG, "total time taken: " + String.format("%.2f", result.mOperationTime / 1000.0) + "s");
         return result;
 
     }
@@ -425,10 +429,12 @@ public class PgpDecryptVerifyOperation extends BaseOperation<PgpDecryptVerifyInp
 
         InputStream dataIn = literalData.getInputStream();
 
+        long opTime, startTime = System.currentTimeMillis();
+
         long alreadyWritten = 0;
         long wholeSize = 0; // TODO inputData.getSize() - inputData.getStreamPosition();
         int length;
-        byte[] buffer = new byte[1 << 16];
+        byte[] buffer = new byte[8192];
         byte[] firstBytes = new byte[48];
         while ((length = dataIn.read(buffer)) > 0) {
             // Log.d(Constants.TAG, "read bytes: " + length);
@@ -456,6 +462,20 @@ public class PgpDecryptVerifyOperation extends BaseOperation<PgpDecryptVerifyInp
             }
         }
 
+        if (signatureChecker.isInitialized()) {
+
+            Object o = plainFact.nextObject();
+            boolean signatureCheckOk = signatureChecker.verifySignatureOnePass(o, log, indent + 1);
+
+            if (!signatureCheckOk) {
+                return new DecryptVerifyResult(DecryptVerifyResult.RESULT_ERROR, log);
+            }
+
+        }
+
+        opTime = System.currentTimeMillis()-startTime;
+        Log.d(Constants.TAG, "decrypt time taken: " + String.format("%.2f", opTime / 1000.0) + "s");
+
         // special treatment to detect pgp mime types
         if (matchesPrefix(firstBytes, "-----BEGIN PGP PUBLIC KEY BLOCK-----")
                 || matchesPrefix(firstBytes, "-----BEGIN PGP PRIVATE KEY BLOCK-----")) {
@@ -469,17 +489,6 @@ public class PgpDecryptVerifyOperation extends BaseOperation<PgpDecryptVerifyInp
 
         metadata = new OpenPgpMetadata(
                 originalFilename, mimeType, literalData.getModificationTime().getTime(), alreadyWritten, charset);
-
-        if (signatureChecker.isInitialized()) {
-
-            Object o = plainFact.nextObject();
-            boolean signatureCheckOk = signatureChecker.verifySignatureOnePass(o, log, indent + 1);
-
-            if (!signatureCheckOk) {
-                return new DecryptVerifyResult(DecryptVerifyResult.RESULT_ERROR, log);
-            }
-
-        }
 
         indent -= 1;
 
@@ -513,6 +522,7 @@ public class PgpDecryptVerifyOperation extends BaseOperation<PgpDecryptVerifyInp
         result.setSignatureResult(signatureChecker.getSignatureResult());
         result.setDecryptionResult(decryptionResultBuilder.build());
         result.setDecryptionMetadata(metadata);
+        result.mOperationTime = opTime;
 
         return result;
 
@@ -580,6 +590,18 @@ public class PgpDecryptVerifyOperation extends BaseOperation<PgpDecryptVerifyInp
 
                 // get subkey which has been used for this encryption packet
                 secretEncryptionKey = secretKeyRing.getSecretKey(subKeyId);
+
+                if (!secretEncryptionKey.canEncrypt()) {
+                    secretEncryptionKey = null;
+                    log.add(LogType.MSG_DC_ASKIP_BAD_FLAGS, indent + 1);
+                    continue;
+                }
+
+                if (!secretEncryptionKey.getSecretKeyType().isUsable()) {
+                    secretEncryptionKey = null;
+                    log.add(LogType.MSG_DC_ASKIP_UNAVAILABLE, indent + 1);
+                    continue;
+                }
 
                 /* secret key exists in database and is allowed! */
                 asymmetricPacketFound = true;

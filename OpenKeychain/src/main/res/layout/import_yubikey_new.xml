@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    xmlns:custom="http://schemas.android.com/apk/res-auto">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="false"
+        android:layout_above="@+id/create_key_button_divider">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_margin="8dp"
+                    android:src="@drawable/yubi_icon" />
+
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp"
+                android:text="This Yubikey already contains a key. To use it, we first need to find the key's information."
+                style="?android:textAppearanceSmall"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <org.sufficientlysecure.keychain.ui.widget.StatusIndicator
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:id="@+id/linked_status_step1"
+                        android:layout_margin="4dp"
+                        custom:initialView="3" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:text="Searching Locally"
+                        style="?android:textAppearanceMedium"
+                        />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <org.sufficientlysecure.keychain.ui.widget.StatusIndicator
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:id="@+id/linked_status_step2"
+                        android:layout_margin="4dp"
+                        custom:initialView="1" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:text="Retrieving from Yubikey URL"
+                        style="?android:textAppearanceMedium"
+                        />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <org.sufficientlysecure.keychain.ui.widget.StatusIndicator
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:id="@+id/linked_status_step3"
+                        android:layout_margin="4dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:text="Searching on the Internet"
+                        style="?android:textAppearanceMedium"
+                        />
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <org.sufficientlysecure.keychain.ui.widget.ToolableViewAnimator
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/button_container"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp"
+                android:layout_marginRight="4dp"
+                android:layout_marginLeft="4dp"
+                android:inAnimation="@anim/fade_in"
+                android:outAnimation="@anim/fade_out"
+                android:clipChildren="false"
+                custom:initialView="2">
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:drawableLeft="@drawable/link_24dp"
+                    android:drawableStart="@drawable/link_24dp"
+                    android:drawablePadding="12dp"
+                    android:text="@string/linked_button_start"
+                    android:id="@+id/button_send"
+                    />
+
+                <Space
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_gravity="center_horizontal">
+
+                    <Button
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="12dp"
+                        android:drawableLeft="@drawable/ic_repeat_black_24dp"
+                        android:drawableStart="@drawable/ic_repeat_black_24dp"
+                        android:drawablePadding="12dp"
+                        android:text="Retry"
+                        android:id="@+id/button_retry"
+                        />
+
+                    <Button
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="12dp"
+                        android:drawableLeft="@drawable/ic_save_black_24dp"
+                        android:drawableStart="@drawable/ic_save_black_24dp"
+                        android:drawablePadding="12dp"
+                        android:text="From File"
+                        android:id="@+id/button_retry"
+                        />
+
+                </LinearLayout>
+
+            </org.sufficientlysecure.keychain.ui.widget.ToolableViewAnimator>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+    <View
+        android:id="@+id/create_key_button_divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dip"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:background="?android:attr/listDivider"
+        android:layout_alignTop="@+id/create_key_buttons"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:id="@+id/create_key_buttons">
+
+        <TextView
+            android:id="@+id/back_button"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/btn_back"
+            android:minHeight="?android:attr/listPreferredItemHeight"
+            android:textAllCaps="true"
+            style="?android:attr/borderlessButtonStyle"
+            android:drawableLeft="@drawable/ic_chevron_left_grey_24dp"
+            android:drawablePadding="8dp"
+            android:gravity="center_vertical"
+            android:clickable="true"
+            android:layout_gravity="center_vertical" />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:background="?android:attr/listDivider" />
+
+        <TextView
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/btn_finish"
+            android:minHeight="?android:attr/listPreferredItemHeight"
+            android:textAllCaps="true"
+            android:drawableRight="@drawable/ic_person_add_grey_24dp"
+            android:drawablePadding="8dp"
+            style="?android:attr/borderlessButtonStyle"
+            android:gravity="center_vertical|right"
+            android:layout_gravity="center_vertical"
+            android:visibility="invisible" />
+    </LinearLayout>
+
+</RelativeLayout>

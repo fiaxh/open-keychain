@@ -45,7 +45,6 @@ import org.sufficientlysecure.keychain.R;
 import org.sufficientlysecure.keychain.compatibility.AppCompatPreferenceActivity;
 import org.sufficientlysecure.keychain.ui.util.Notify;
 import org.sufficientlysecure.keychain.ui.util.ThemeChanger;
-import org.sufficientlysecure.keychain.ui.widget.IntegerListPreference;
 import org.sufficientlysecure.keychain.util.Log;
 import org.sufficientlysecure.keychain.util.Preferences;
 import org.sufficientlysecure.keychain.util.orbot.OrbotHelper;
@@ -179,11 +178,19 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             // Load the preferences from an XML resource
             addPreferencesFromResource(R.xml.passphrase_preferences);
 
+            findPreference(Constants.Pref.PASSPHRASE_CACHE_TTLS)
+                    .setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                        public boolean onPreferenceClick(Preference preference) {
+                            Intent intent = new Intent(getActivity(), SettingsCacheTTLActivity.class);
+                            intent.putExtra(SettingsCacheTTLActivity.EXTRA_TTL_PREF,
+                                    sPreferences.getPassphraseCacheTtl());
+                            startActivity(intent);
+                            return false;
+                        }
+                    });
+
             initializePassphraseCacheSubs(
                     (CheckBoxPreference) findPreference(Constants.Pref.PASSPHRASE_CACHE_SUBS));
-
-            initializePassphraseCacheTtl(
-                    (IntegerListPreference) findPreference(Constants.Pref.PASSPHRASE_CACHE_TTL));
 
             initializeUseNumKeypadForYubiKeyPin(
                     (CheckBoxPreference) findPreference(Constants.Pref.USE_NUMKEYPAD_FOR_YUBIKEY_PIN));
@@ -524,20 +531,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                 return false;
             }
         });
-    }
-
-    private static void initializePassphraseCacheTtl(final IntegerListPreference mPassphraseCacheTtl) {
-        mPassphraseCacheTtl.setValue("" + sPreferences.getPassphraseCacheTtl());
-        mPassphraseCacheTtl.setSummary(mPassphraseCacheTtl.getEntry());
-        mPassphraseCacheTtl
-                .setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-                    public boolean onPreferenceChange(Preference preference, Object newValue) {
-                        mPassphraseCacheTtl.setValue(newValue.toString());
-                        mPassphraseCacheTtl.setSummary(mPassphraseCacheTtl.getEntry());
-                        sPreferences.setPassphraseCacheTtl(Integer.parseInt(newValue.toString()));
-                        return false;
-                    }
-                });
     }
 
     private static void initializeTheme(final ListPreference mTheme) {

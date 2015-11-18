@@ -18,19 +18,6 @@
 
 package org.sufficientlysecure.keychain.util;
 
-import android.content.Context;
-import android.content.SharedPreferences;
-
-import android.content.res.Resources;
-import android.os.Parcel;
-import android.os.Parcelable;
-import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
-
-import org.sufficientlysecure.keychain.Constants;
-import org.sufficientlysecure.keychain.Constants.Pref;
-import org.sufficientlysecure.keychain.R;
-import org.sufficientlysecure.keychain.service.KeyserverSyncAdapterService;
 
 import java.io.Serializable;
 import java.net.Proxy;
@@ -45,13 +32,24 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
+
+import org.sufficientlysecure.keychain.Constants;
+import org.sufficientlysecure.keychain.Constants.Pref;
+import org.sufficientlysecure.keychain.R;
+import org.sufficientlysecure.keychain.service.KeyserverSyncAdapterService;
+
 /**
  * Singleton Implementation of a Preference Helper
  */
+@SuppressLint("CommitPrefEdits")
 public class Preferences {
     private static Preferences sPreferences;
     private SharedPreferences mSharedPreferences;
-    private Resources mResources;
 
     private static String PREF_FILE_NAME = "APG.main";
     private static int PREF_FILE_MODE = Context.MODE_MULTI_PROCESS;
@@ -71,7 +69,6 @@ public class Preferences {
     }
 
     private Preferences(Context context) {
-        mResources = context.getResources();
         updateSharedPreferences(context);
     }
 
@@ -138,7 +135,7 @@ public class Preferences {
     public String[] getKeyServers() {
         String rawData = mSharedPreferences.getString(Constants.Pref.KEY_SERVERS,
                 Constants.Defaults.KEY_SERVERS);
-        if (rawData.equals("")) {
+        if ("".equals(rawData)) {
             return new String[0];
         }
         Vector<String> servers = new Vector<>();
@@ -464,15 +461,19 @@ public class Preferences {
                         if (server == null) {
                             continue;
                         }
-                        if (server.equals("pool.sks-keyservers.net")) {
-                            // use HKPS!
-                            it.set("hkps://hkps.pool.sks-keyservers.net");
-                        } else if (server.equals("pgp.mit.edu")) {
-                            // use HKPS!
-                            it.set("hkps://pgp.mit.edu");
-                        } else if (server.equals("subkeys.pgp.net")) {
-                            // remove, because often down and no HKPS!
-                            it.remove();
+                        switch (server) {
+                            case "pool.sks-keyservers.net":
+                                // use HKPS!
+                                it.set("hkps://hkps.pool.sks-keyservers.net");
+                                break;
+                            case "pgp.mit.edu":
+                                // use HKPS!
+                                it.set("hkps://pgp.mit.edu");
+                                break;
+                            case "subkeys.pgp.net":
+                                // remove, because often down and no HKPS!
+                                it.remove();
+                                break;
                         }
 
                     }

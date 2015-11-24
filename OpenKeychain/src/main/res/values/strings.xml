@@ -1294,6 +1294,7 @@
     <string name="msg_import_fetch_error_keyserver">"Could not retrieve key from keyservers: %s"</string>
     <string name="msg_import_fetch_error_keyserver_secret">"Cannot import secret key from keyserver!"</string>
     <string name="msg_import_fetch_keybase">"Retrieving from keybase.io: %s"</string>
+    <string name="msg_import_fetch_facebook">"Retrieving from Facebook: %s"</string>
     <string name="msg_import_fetch_keyserver">"Retrieving from keyserver: %s"</string>
     <string name="msg_import_fetch_keyserver_ok">"Key retrieval successful"</string>
     <string name="msg_import_keyserver">"Using keyserver %s"</string>

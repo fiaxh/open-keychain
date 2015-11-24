@@ -24,7 +24,6 @@ import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import org.sufficientlysecure.keychain.Constants;
 import org.sufficientlysecure.keychain.Constants.Pref;
@@ -264,17 +263,6 @@ public class Preferences {
      */
     public int getProxyPort() {
         return Integer.parseInt(mSharedPreferences.getString(Pref.PROXY_PORT, "-1"));
-    }
-
-    /**
-     * we store port as String for easy interfacing with EditTextPreference, but return it as an integer
-     *
-     * @param port proxy port
-     */
-    public void setProxyPort(String port) {
-        SharedPreferences.Editor editor = mSharedPreferences.edit();
-        editor.putString(Pref.PROXY_PORT, port);
-        editor.commit();
     }
 
     public Proxy.Type getProxyType() {

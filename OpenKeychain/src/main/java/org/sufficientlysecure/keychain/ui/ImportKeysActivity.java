@@ -30,6 +30,7 @@ import android.view.ViewGroup;
 import org.sufficientlysecure.keychain.Constants;
 import org.sufficientlysecure.keychain.R;
 import org.sufficientlysecure.keychain.intents.OpenKeychainIntents;
+import org.sufficientlysecure.keychain.keyimport.FacebookKeyserver;
 import org.sufficientlysecure.keychain.keyimport.ImportKeysListEntry;
 import org.sufficientlysecure.keychain.keyimport.ParcelableKeyRing;
 import org.sufficientlysecure.keychain.operations.results.ImportKeyResult;
@@ -50,6 +51,8 @@ public class ImportKeysActivity extends BaseNfcActivity
 
     public static final String ACTION_IMPORT_KEY = OpenKeychainIntents.IMPORT_KEY;
     public static final String ACTION_IMPORT_KEY_FROM_KEYSERVER = OpenKeychainIntents.IMPORT_KEY_FROM_KEYSERVER;
+    public static final String ACTION_IMPORT_KEY_FROM_FACEBOOK
+            = Constants.INTENT_PREFIX + "IMPORT_KEY_FROM_FACEBOOK";
     public static final String ACTION_IMPORT_KEY_FROM_KEYSERVER_AND_RETURN_RESULT =
             Constants.INTENT_PREFIX + "IMPORT_KEY_FROM_KEY_SERVER_AND_RETURN_RESULT";
     public static final String ACTION_IMPORT_KEY_FROM_KEYSERVER_AND_RETURN_TO_SERVICE = Constants.INTENT_PREFIX
@@ -113,6 +116,12 @@ public class ImportKeysActivity extends BaseNfcActivity
         setContentView(R.layout.import_keys_activity);
     }
 
+    @Override
+    public void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        handleActions(intent);
+    }
+
     protected void handleActions(Intent intent) {
         String action = intent.getAction();
         Bundle extras = intent.getExtras();
@@ -124,7 +133,9 @@ public class ImportKeysActivity extends BaseNfcActivity
         }
 
         if (Intent.ACTION_VIEW.equals(action)) {
-            if ("http".equals(scheme) || "https".equals(scheme)) {
+            if (FacebookKeyserver.isFacebookHost(dataUri)) {
+                action = ACTION_IMPORT_KEY_FROM_FACEBOOK;
+            } else if ("http".equals(scheme) || "https".equals(scheme)) {
                 action = ACTION_SEARCH_KEYSERVER_FROM_URL;
             } else {
                 // Android's Action when opening file associated to Keychain (see AndroidManifest.xml)
@@ -205,6 +216,15 @@ public class ImportKeysActivity extends BaseNfcActivity
                 }
                 break;
             }
+            case ACTION_IMPORT_KEY_FROM_FACEBOOK: {
+                String fbUsername = FacebookKeyserver.getUsernameFromUri(dataUri);
+
+                // we allow our users to edit the query if they wish
+                startTopCloudFragment(fbUsername, false, FacebookKeyserver.FB_URL);
+                // search immediately
+                startListFragment(null, null, fbUsername, FacebookKeyserver.FB_URL);
+                break;
+            }
             case ACTION_SEARCH_KEYSERVER_FROM_URL: {
                 // need to process URL to get search query and keyserver authority
                 String query = dataUri.getQueryParameter("search");
@@ -268,7 +288,9 @@ public class ImportKeysActivity extends BaseNfcActivity
                 ImportKeysListFragment.newInstance(bytes, dataUri, serverQuery, false, keyserver);
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.import_keys_list_container, listFragment, TAG_FRAG_LIST)
-                .commit();
+                .commitAllowingStateLoss();
+        // we commitAllowingStateLoss for when the Activity is already started but an Intent is
+        // received and to be rendered
     }
 
     private void startTopFileFragment() {
@@ -293,7 +315,9 @@ public class ImportKeysActivity extends BaseNfcActivity
         Fragment importCloudFragment = ImportKeysCloudFragment.newInstance(query, disableQueryEdit, keyserver);
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.import_keys_top_container, importCloudFragment, TAG_FRAG_TOP)
-                .commit();
+                .commitAllowingStateLoss();
+        // we commitAllowingStateLoss for when the Activity has been started but an Intent is
+        // received and to be rendered
     }
 
     private boolean isFingerprintValid(String fingerprint) {
@@ -363,9 +387,8 @@ public class ImportKeysActivity extends BaseNfcActivity
                 // change the format into ParcelableKeyRing
                 ArrayList<ImportKeysListEntry> entries = keyListFragment.getSelectedEntries();
                 for (ImportKeysListEntry entry : entries) {
-                    keys.add(new ParcelableKeyRing(
-                                    entry.getFingerprintHex(), entry.getKeyIdHex(), entry.getExtraData())
-                    );
+                    keys.add(new ParcelableKeyRing(entry.getFingerprintHex(),
+                            entry.getKeyIdHex(), entry.getKeybaseName(), entry.getFbUsername()));
                 }
             }
 

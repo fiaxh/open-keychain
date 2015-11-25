@@ -29,7 +29,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
@@ -132,6 +131,9 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
 
+            // preferences are automatically written to our preference file
+            Preferences.setPreferenceManagerFileAndMode(this.getPreferenceManager());
+
             // Load the preferences from an XML resource
             addPreferencesFromResource(R.xml.cloud_search_preferences);
 
@@ -149,12 +151,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                             return false;
                         }
                     });
-            initializeSearchKeyserver(
-                    (SwitchPreference) findPreference(Constants.Pref.SEARCH_KEYSERVER)
-            );
-            initializeSearchKeybase(
-                    (SwitchPreference) findPreference(Constants.Pref.SEARCH_KEYBASE)
-            );
         }
 
         @Override
@@ -183,17 +179,14 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
 
+            // preferences are automatically written to our preference file
+            Preferences.setPreferenceManagerFileAndMode(this.getPreferenceManager());
+
             // Load the preferences from an XML resource
             addPreferencesFromResource(R.xml.passphrase_preferences);
 
-            initializePassphraseCacheSubs(
-                    (CheckBoxPreference) findPreference(Constants.Pref.PASSPHRASE_CACHE_SUBS));
-
             initializePassphraseCacheTtl(
                     (IntegerListPreference) findPreference(Constants.Pref.PASSPHRASE_CACHE_TTL));
-
-            initializeUseNumKeypadForYubiKeyPin(
-                    (CheckBoxPreference) findPreference(Constants.Pref.USE_NUMKEYPAD_FOR_YUBIKEY_PIN));
         }
     }
 
@@ -574,17 +567,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                 || super.isValidFragment(fragmentName);
     }
 
-    private static void initializePassphraseCacheSubs(final CheckBoxPreference mPassphraseCacheSubs) {
-        mPassphraseCacheSubs.setChecked(sPreferences.getPassphraseCacheSubs());
-        mPassphraseCacheSubs.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-                mPassphraseCacheSubs.setChecked((Boolean) newValue);
-                sPreferences.setPassphraseCacheSubs((Boolean) newValue);
-                return false;
-            }
-        });
-    }
-
     private static void initializePassphraseCacheTtl(final IntegerListPreference mPassphraseCacheTtl) {
         mPassphraseCacheTtl.setValue("" + sPreferences.getPassphraseCacheTtl());
         mPassphraseCacheTtl.setSummary(mPassphraseCacheTtl.getEntry());
@@ -617,49 +599,12 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         });
     }
 
-    private static void initializeSearchKeyserver(final SwitchPreference mSearchKeyserver) {
-        Preferences.CloudSearchPrefs prefs = sPreferences.getCloudSearchPrefs();
-        mSearchKeyserver.setChecked(prefs.searchKeyserver);
-        mSearchKeyserver.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            @Override
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-                mSearchKeyserver.setChecked((Boolean) newValue);
-                sPreferences.setSearchKeyserver((Boolean) newValue);
-                return false;
-            }
-        });
-    }
-
-    private static void initializeSearchKeybase(final SwitchPreference mSearchKeybase) {
-        Preferences.CloudSearchPrefs prefs = sPreferences.getCloudSearchPrefs();
-        mSearchKeybase.setChecked(prefs.searchKeybase);
-        mSearchKeybase.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            @Override
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-                mSearchKeybase.setChecked((Boolean) newValue);
-                sPreferences.setSearchKeybase((Boolean) newValue);
-                return false;
-            }
-        });
-    }
-
     public static String keyserverSummary(Context context) {
         String[] servers = sPreferences.getKeyServers();
         String serverSummary = context.getResources().getQuantityString(
                 R.plurals.n_keyservers, servers.length, servers.length);
         return serverSummary + "; " + context.getString(R.string.label_preferred) + ": " + sPreferences
                 .getPreferredKeyserver();
-    }
-
-    private static void initializeUseNumKeypadForYubiKeyPin(final CheckBoxPreference mUseNumKeypadForYubiKeyPin) {
-        mUseNumKeypadForYubiKeyPin.setChecked(sPreferences.useNumKeypadForYubiKeyPin());
-        mUseNumKeypadForYubiKeyPin.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-                mUseNumKeypadForYubiKeyPin.setChecked((Boolean) newValue);
-                sPreferences.setUseNumKeypadForYubiKeyPin((Boolean) newValue);
-                return false;
-            }
-        });
     }
 
     private static void initializeExperimentalEnableWordConfirm(final SwitchPreference mExperimentalEnableWordConfirm) {

@@ -43,14 +43,13 @@ public class CloudSearch {
         final Vector<Keyserver.CloudSearchFailureException> problems = new Vector<>();
 
         if (cloudPrefs.searchKeyserver) {
-            if (FacebookKeyserver.isFacebookHost(cloudPrefs.keyserver)) {
-                servers.add(new FacebookKeyserver(proxy));
-            } else {
-                servers.add(new HkpKeyserver(cloudPrefs.keyserver, proxy));
-            }
+            servers.add(new HkpKeyserver(cloudPrefs.keyserver, proxy));
         }
         if (cloudPrefs.searchKeybase) {
             servers.add(new KeybaseKeyserver(proxy));
+        }
+        if (cloudPrefs.searchFacebook) {
+            servers.add(new FacebookKeyserver(proxy));
         }
         final ImportKeysList results = new ImportKeysList(servers.size());
 

@@ -187,7 +187,7 @@ public class ImportOperation extends BaseOperation<ImportKeyringParcel> {
 
                     // If we have a keyServerUri and a fingerprint or at least a keyId,
                     // download from HKP
-                    if (keyServerUri != null && !FacebookKeyserver.isFacebookHost(keyServerUri)
+                    if (keyServerUri != null
                             && (entry.mKeyIdHex != null || entry.mExpectedFingerprint != null)) {
                         // Make sure we have the keyserver instance cached
                         if (keyServer == null) {

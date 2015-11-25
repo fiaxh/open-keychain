@@ -22,6 +22,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import android.content.res.Resources;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 
@@ -65,6 +67,12 @@ public class Preferences {
         updateSharedPreferences(context);
     }
 
+    /**
+     * Makes android's preference framework write to our file instead of default.
+     * This allows us to use the "persistent" attribute to simplify code, which automatically
+     * writes and reads preference values.
+     * @param manager
+     */
     public static void setPreferenceManagerFileAndMode(PreferenceManager manager) {
         manager.setSharedPreferencesName(PREF_FILE_NAME);
         manager.setSharedPreferencesMode(PREF_FILE_MODE);
@@ -326,12 +334,14 @@ public class Preferences {
     public CloudSearchPrefs getCloudSearchPrefs() {
         return new CloudSearchPrefs(mSharedPreferences.getBoolean(Pref.SEARCH_KEYSERVER, true),
                 mSharedPreferences.getBoolean(Pref.SEARCH_KEYBASE, true),
+                mSharedPreferences.getBoolean(Pref.SEARCH_FACEBOOK, true),
                 getPreferredKeyserver());
     }
 
-    public static class CloudSearchPrefs {
+    public static class CloudSearchPrefs implements Parcelable {
         public final boolean searchKeyserver;
         public final boolean searchKeybase;
+        public final boolean searchFacebook;
         public final String keyserver;
 
         /**
@@ -339,11 +349,46 @@ public class Preferences {
          * @param searchKeybase   should keybase.io be searched
          * @param keyserver       the keyserver url authority to search on
          */
-        public CloudSearchPrefs(boolean searchKeyserver, boolean searchKeybase, String keyserver) {
+        public CloudSearchPrefs(boolean searchKeyserver, boolean searchKeybase,
+                                boolean searchFacebook, String keyserver) {
             this.searchKeyserver = searchKeyserver;
             this.searchKeybase = searchKeybase;
+            this.searchFacebook = searchFacebook;
             this.keyserver = keyserver;
         }
+
+        protected CloudSearchPrefs(Parcel in) {
+            searchKeyserver = in.readByte() != 0x00;
+            searchKeybase = in.readByte() != 0x00;
+            searchFacebook = in.readByte() != 0x00;
+            keyserver = in.readString();
+        }
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            dest.writeByte((byte) (searchKeyserver ? 0x01 : 0x00));
+            dest.writeByte((byte) (searchKeybase ? 0x01 : 0x00));
+            dest.writeByte((byte) (searchFacebook ? 0x01 : 0x00));
+            dest.writeString(keyserver);
+        }
+
+        public static final Parcelable.Creator<CloudSearchPrefs> CREATOR
+                = new Parcelable.Creator<CloudSearchPrefs>() {
+            @Override
+            public CloudSearchPrefs createFromParcel(Parcel in) {
+                return new CloudSearchPrefs(in);
+            }
+
+            @Override
+            public CloudSearchPrefs[] newArray(int size) {
+                return new CloudSearchPrefs[size];
+            }
+        };
     }
 
     // experimental prefs

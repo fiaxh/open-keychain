@@ -18,4 +18,10 @@
         android:summary="@string/pref_keybase_summary"
         android:title="@string/pref_keybase" />
 
+    <SwitchPreference
+        android:defaultValue="true"
+        android:key="search_facebook_pref"
+        android:summary="@string/pref_facebook_summary"
+        android:title="@string/pref_facebook" />
+
 </PreferenceScreen>

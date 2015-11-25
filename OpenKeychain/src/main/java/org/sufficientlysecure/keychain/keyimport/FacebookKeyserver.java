@@ -194,9 +194,4 @@ public class FacebookKeyserver extends Keyserver {
         String host = uri.getHost();
         return host.equalsIgnoreCase(FB_HOST) || host.equalsIgnoreCase(FB_HOST_WWW);
     }
-
-    public static boolean isFacebookHost(String uri) {
-        String host = URI.create(uri).getHost();
-        return host.equalsIgnoreCase(FB_HOST) || host.equalsIgnoreCase(FB_HOST_WWW);
-    }
 }

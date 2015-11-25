@@ -42,6 +42,7 @@ import org.sufficientlysecure.keychain.ui.util.Notify;
 import org.sufficientlysecure.keychain.util.Log;
 import org.sufficientlysecure.keychain.util.ParcelableFileCache;
 import org.sufficientlysecure.keychain.util.ParcelableFileCache.IteratorWithSize;
+import org.sufficientlysecure.keychain.util.Preferences;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -219,32 +220,28 @@ public class ImportKeysActivity extends BaseNfcActivity
             case ACTION_IMPORT_KEY_FROM_FACEBOOK: {
                 String fbUsername = FacebookKeyserver.getUsernameFromUri(dataUri);
 
+                Preferences.CloudSearchPrefs cloudSearchPrefs =
+                        new Preferences.CloudSearchPrefs(false, true, true, null);
                 // we allow our users to edit the query if they wish
-                startTopCloudFragment(fbUsername, false, FacebookKeyserver.FB_URL);
+                startTopCloudFragment(fbUsername, false, cloudSearchPrefs);
                 // search immediately
-                startListFragment(null, null, fbUsername, FacebookKeyserver.FB_URL);
+                startListFragment(null, null, fbUsername, cloudSearchPrefs);
                 break;
             }
             case ACTION_SEARCH_KEYSERVER_FROM_URL: {
                 // need to process URL to get search query and keyserver authority
                 String query = dataUri.getQueryParameter("search");
-                String keyserver = dataUri.getAuthority();
                 // if query not specified, we still allow users to search the keyserver in the link
                 if (query == null) {
                     Notify.create(this, R.string.import_url_warn_no_search_parameter, Notify.LENGTH_INDEFINITE,
                             Notify.Style.WARN).show();
-                    // we just set the keyserver
-                    startTopCloudFragment(null, false, keyserver);
-                    // we don't set the keyserver for ImportKeysListFragment since
-                    // it'll be set in the cloudSearchPrefs of ImportKeysCloudFragment
-                    // which is used when the user clicks on the search button
-                    startListFragment(null, null, null, null);
-                } else {
-                    // we allow our users to edit the query if they wish
-                    startTopCloudFragment(query, false, keyserver);
-                    // search immediately
-                    startListFragment(null, null, query, keyserver);
                 }
+                Preferences.CloudSearchPrefs cloudSearchPrefs = new Preferences.CloudSearchPrefs(
+                        true, true, true, dataUri.getAuthority());
+                // we allow our users to edit the query if they wish
+                startTopCloudFragment(query, false, cloudSearchPrefs);
+                // search immediately (if query is not null)
+                startListFragment(null, null, query, cloudSearchPrefs);
                 break;
             }
             case ACTION_IMPORT_KEY_FROM_FILE:
@@ -274,18 +271,21 @@ public class ImportKeysActivity extends BaseNfcActivity
     }
 
     /**
-     * if the fragment is started with non-null bytes/dataUri/serverQuery, it will immediately
-     * load content
+     * Shows the list of keys to be imported.
+     * If the fragment is started with non-null bytes/dataUri/serverQuery, it will immediately
+     * load content.
      *
-     * @param bytes              bytes containing list of keyrings to import
-     * @param dataUri            uri to file to import keyrings from
-     * @param serverQuery        query to search for on the keyserver
-     * @param keyserver          keyserver authority to search on. If null will use keyserver from
-     *                           user preferences
+     * @param bytes            bytes containing list of keyrings to import
+     * @param dataUri          uri to file to import keyrings from
+     * @param serverQuery      query to search for on the keyserver
+     * @param cloudSearchPrefs search specifications to use. If null will retrieve from user's
+     *                         preferences.
      */
-    private void startListFragment(byte[] bytes, Uri dataUri, String serverQuery, String keyserver) {
+    private void startListFragment(byte[] bytes, Uri dataUri, String serverQuery,
+                                   Preferences.CloudSearchPrefs cloudSearchPrefs) {
         Fragment listFragment =
-                ImportKeysListFragment.newInstance(bytes, dataUri, serverQuery, false, keyserver);
+                ImportKeysListFragment.newInstance(bytes, dataUri, serverQuery, false,
+                        cloudSearchPrefs);
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.import_keys_list_container, listFragment, TAG_FRAG_LIST)
                 .commitAllowingStateLoss();
@@ -305,14 +305,16 @@ public class ImportKeysActivity extends BaseNfcActivity
      * loads the CloudFragment, which consists of the search bar, search button and settings icon
      * visually.
      *
-     * @param query              search query
-     * @param disableQueryEdit   if true, user will not be able to edit the search query
-     * @param keyserver          keyserver authority to use for search, if null will use keyserver
-     *                           specified in user preferences
+     * @param query            search query
+     * @param disableQueryEdit if true, user will not be able to edit the search query
+     * @param cloudSearchPrefs keyserver authority to use for search, if null will use keyserver
+     *                         specified in user preferences
      */
-    private void startTopCloudFragment(String query, boolean disableQueryEdit, String keyserver) {
+    private void startTopCloudFragment(String query, boolean disableQueryEdit,
+                                       Preferences.CloudSearchPrefs cloudSearchPrefs) {
         findViewById(R.id.import_keys_top_layout).setVisibility(View.VISIBLE);
-        Fragment importCloudFragment = ImportKeysCloudFragment.newInstance(query, disableQueryEdit, keyserver);
+        Fragment importCloudFragment = ImportKeysCloudFragment.newInstance(query, disableQueryEdit,
+                cloudSearchPrefs);
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.import_keys_top_container, importCloudFragment, TAG_FRAG_TOP)
                 .commitAllowingStateLoss();

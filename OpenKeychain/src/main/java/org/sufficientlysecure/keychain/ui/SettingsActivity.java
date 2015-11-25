@@ -168,6 +168,14 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                 }
             }
         }
+
+        public static String keyserverSummary(Context context) {
+            String[] servers = sPreferences.getKeyServers();
+            String serverSummary = context.getResources().getQuantityString(
+                    R.plurals.n_keyservers, servers.length, servers.length);
+            return serverSummary + "; " + context.getString(R.string.label_preferred) + ": " + sPreferences
+                    .getPreferredKeyserver();
+        }
     }
 
     /**
@@ -187,6 +195,21 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
             initializePassphraseCacheTtl(
                     (IntegerListPreference) findPreference(Constants.Pref.PASSPHRASE_CACHE_TTL));
+        }
+
+        private static void initializePassphraseCacheTtl(
+                final IntegerListPreference passphraseCacheTtl) {
+            passphraseCacheTtl.setValue("" + sPreferences.getPassphraseCacheTtl());
+            passphraseCacheTtl.setSummary(passphraseCacheTtl.getEntry());
+            passphraseCacheTtl
+                    .setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                        public boolean onPreferenceChange(Preference preference, Object newValue) {
+                            passphraseCacheTtl.setValue(newValue.toString());
+                            passphraseCacheTtl.setSummary(passphraseCacheTtl.getEntry());
+                            sPreferences.setPassphraseCacheTtl(Integer.parseInt(newValue.toString()));
+                            return false;
+                        }
+                    });
         }
     }
 
@@ -541,20 +564,28 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
 
+            Preferences.setPreferenceManagerFileAndMode(getPreferenceManager());
+
             // Load the preferences from an XML resource
             addPreferencesFromResource(R.xml.experimental_preferences);
 
-            initializeExperimentalEnableWordConfirm(
-                    (SwitchPreference) findPreference(Constants.Pref.EXPERIMENTAL_ENABLE_WORD_CONFIRM));
-
-            initializeExperimentalEnableLinkedIdentities(
-                    (SwitchPreference) findPreference(Constants.Pref.EXPERIMENTAL_ENABLE_LINKED_IDENTITIES));
-
-            initializeExperimentalEnableKeybase(
-                    (SwitchPreference) findPreference(Constants.Pref.EXPERIMENTAL_ENABLE_KEYBASE));
-
             initializeTheme((ListPreference) findPreference(Constants.Pref.THEME));
 
+        }
+
+        private static void initializeTheme(final ListPreference themePref) {
+            themePref.setSummary(themePref.getEntry() + "\n"
+                    + themePref.getContext().getString(R.string.label_experimental_settings_theme_summary));
+            themePref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    themePref.setSummary(newValue + "\n"
+                            + themePref.getContext().getString(R.string.label_experimental_settings_theme_summary));
+
+                    ((SettingsActivity) themePref.getContext()).recreate();
+
+                    return true;
+                }
+            });
         }
     }
 
@@ -565,78 +596,5 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                 || SyncPrefsFragment.class.getName().equals(fragmentName)
                 || ExperimentalPrefsFragment.class.getName().equals(fragmentName)
                 || super.isValidFragment(fragmentName);
-    }
-
-    private static void initializePassphraseCacheTtl(final IntegerListPreference mPassphraseCacheTtl) {
-        mPassphraseCacheTtl.setValue("" + sPreferences.getPassphraseCacheTtl());
-        mPassphraseCacheTtl.setSummary(mPassphraseCacheTtl.getEntry());
-        mPassphraseCacheTtl
-                .setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-                    public boolean onPreferenceChange(Preference preference, Object newValue) {
-                        mPassphraseCacheTtl.setValue(newValue.toString());
-                        mPassphraseCacheTtl.setSummary(mPassphraseCacheTtl.getEntry());
-                        sPreferences.setPassphraseCacheTtl(Integer.parseInt(newValue.toString()));
-                        return false;
-                    }
-                });
-    }
-
-    private static void initializeTheme(final ListPreference mTheme) {
-        mTheme.setValue(sPreferences.getTheme());
-        mTheme.setSummary(mTheme.getEntry() + "\n"
-                + mTheme.getContext().getString(R.string.label_experimental_settings_theme_summary));
-        mTheme.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-                mTheme.setValue((String) newValue);
-                mTheme.setSummary(mTheme.getEntry() + "\n"
-                        + mTheme.getContext().getString(R.string.label_experimental_settings_theme_summary));
-                sPreferences.setTheme((String) newValue);
-
-                ((SettingsActivity) mTheme.getContext()).recreate();
-
-                return false;
-            }
-        });
-    }
-
-    public static String keyserverSummary(Context context) {
-        String[] servers = sPreferences.getKeyServers();
-        String serverSummary = context.getResources().getQuantityString(
-                R.plurals.n_keyservers, servers.length, servers.length);
-        return serverSummary + "; " + context.getString(R.string.label_preferred) + ": " + sPreferences
-                .getPreferredKeyserver();
-    }
-
-    private static void initializeExperimentalEnableWordConfirm(final SwitchPreference mExperimentalEnableWordConfirm) {
-        mExperimentalEnableWordConfirm.setChecked(sPreferences.getExperimentalEnableWordConfirm());
-        mExperimentalEnableWordConfirm.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-                mExperimentalEnableWordConfirm.setChecked((Boolean) newValue);
-                sPreferences.setExperimentalEnableWordConfirm((Boolean) newValue);
-                return false;
-            }
-        });
-    }
-
-    private static void initializeExperimentalEnableLinkedIdentities(final SwitchPreference mExperimentalEnableLinkedIdentities) {
-        mExperimentalEnableLinkedIdentities.setChecked(sPreferences.getExperimentalEnableLinkedIdentities());
-        mExperimentalEnableLinkedIdentities.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-                mExperimentalEnableLinkedIdentities.setChecked((Boolean) newValue);
-                sPreferences.setExperimentalEnableLinkedIdentities((Boolean) newValue);
-                return false;
-            }
-        });
-    }
-
-    private static void initializeExperimentalEnableKeybase(final SwitchPreference mExperimentalKeybase) {
-        mExperimentalKeybase.setChecked(sPreferences.getExperimentalEnableKeybase());
-        mExperimentalKeybase.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-                mExperimentalKeybase.setChecked((Boolean) newValue);
-                sPreferences.setExperimentalEnableKeybase((Boolean) newValue);
-                return false;
-            }
-        });
     }
 }

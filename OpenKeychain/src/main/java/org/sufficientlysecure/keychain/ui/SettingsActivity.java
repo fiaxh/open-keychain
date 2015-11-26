@@ -32,7 +32,6 @@ import android.os.Bundle;
 import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
-import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
@@ -114,6 +113,15 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         });
     }
 
+    public static abstract class PresetPreferenceFragment extends PreferenceFragment {
+        @Override
+        public void addPreferencesFromResource(int preferencesResId) {
+            // preferences are automatically written to our preference file
+            Preferences.setPreferenceManagerFileAndMode(this.getPreferenceManager());
+            super.addPreferencesFromResource(preferencesResId);
+        }
+    }
+
     @Override
     public void onBuildHeaders(List<Header> target) {
         super.onBuildHeaders(target);
@@ -123,16 +131,13 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
     /**
      * This fragment shows the Cloud Search preferences
      */
-    public static class CloudSearchPrefsFragment extends PreferenceFragment {
+    public static class CloudSearchPrefsFragment extends PresetPreferenceFragment {
 
         private PreferenceScreen mKeyServerPreference = null;
 
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
-
-            // preferences are automatically written to our preference file
-            Preferences.setPreferenceManagerFileAndMode(this.getPreferenceManager());
 
             // Load the preferences from an XML resource
             addPreferencesFromResource(R.xml.cloud_search_preferences);
@@ -181,14 +186,11 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
     /**
      * This fragment shows the PIN/password preferences
      */
-    public static class PassphrasePrefsFragment extends PreferenceFragment {
+    public static class PassphrasePrefsFragment extends PresetPreferenceFragment {
 
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
-
-            // preferences are automatically written to our preference file
-            Preferences.setPreferenceManagerFileAndMode(this.getPreferenceManager());
 
             // Load the preferences from an XML resource
             addPreferencesFromResource(R.xml.passphrase_preferences);
@@ -213,7 +215,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         }
     }
 
-    public static class ProxyPrefsFragment extends PreferenceFragment {
+    public static class ProxyPrefsFragment extends PresetPreferenceFragment {
 
         @Override
         public void onCreate(Bundle savedInstanceState) {
@@ -229,37 +231,18 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             private EditTextPreference mProxyHost;
             private EditTextPreference mProxyPort;
             private ListPreference mProxyType;
-            private PreferenceActivity mActivity;
-            private PreferenceFragment mFragment;
+            private PresetPreferenceFragment mFragment;
 
-            public Initializer(PreferenceFragment fragment) {
+            public Initializer(PresetPreferenceFragment fragment) {
                 mFragment = fragment;
             }
 
-            public Initializer(PreferenceActivity activity) {
-                mActivity = activity;
-            }
-
             public Preference automaticallyFindPreference(String key) {
-                if (mFragment != null) {
-                    return mFragment.findPreference(key);
-                } else {
-                    return mActivity.findPreference(key);
-                }
+                return mFragment.findPreference(key);
             }
 
             public void initialize() {
-                // makes android's preference framework write to our file instead of default
-                // This allows us to use the "persistent" attribute to simplify code
-                if (mFragment != null) {
-                    Preferences.setPreferenceManagerFileAndMode(mFragment.getPreferenceManager());
-                    // Load the preferences from an XML resource
-                    mFragment.addPreferencesFromResource(R.xml.proxy_preferences);
-                } else {
-                    Preferences.setPreferenceManagerFileAndMode(mActivity.getPreferenceManager());
-                    // Load the preferences from an XML resource
-                    mActivity.addPreferencesFromResource(R.xml.proxy_preferences);
-                }
+                mFragment.addPreferencesFromResource(R.xml.proxy_preferences);
 
                 mUseTor = (SwitchPreference) automaticallyFindPreference(Constants.Pref.USE_TOR_PROXY);
                 mUseNormalProxy = (SwitchPreference) automaticallyFindPreference(Constants.Pref.USE_NORMAL_PROXY);
@@ -284,7 +267,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                 mUseTor.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                     @Override
                     public boolean onPreferenceChange(Preference preference, Object newValue) {
-                        Activity activity = mFragment != null ? mFragment.getActivity() : mActivity;
+                        Activity activity = mFragment.getActivity();
                         if ((Boolean) newValue) {
                             boolean installed = OrbotHelper.isOrbotInstalled(activity);
                             if (!installed) {
@@ -330,7 +313,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                 mProxyHost.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                     @Override
                     public boolean onPreferenceChange(Preference preference, Object newValue) {
-                        Activity activity = mFragment != null ? mFragment.getActivity() : mActivity;
+                        Activity activity = mFragment.getActivity();
                         if (TextUtils.isEmpty((String) newValue)) {
                             Notify.create(
                                     activity,
@@ -348,7 +331,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                 mProxyPort.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                     @Override
                     public boolean onPreferenceChange(Preference preference, Object newValue) {
-                        Activity activity = mFragment != null ? mFragment.getActivity() : mActivity;
+                        Activity activity = mFragment.getActivity();
                         try {
                             int port = Integer.parseInt((String) newValue);
                             if (port < 0 || port > 65535) {
@@ -423,7 +406,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
     /**
      * This fragment shows the keyserver/contacts sync preferences
      */
-    public static class SyncPrefsFragment extends PreferenceFragment {
+    public static class SyncPrefsFragment extends PresetPreferenceFragment {
 
         @Override
         public void onCreate(Bundle savedInstanceState) {
@@ -558,13 +541,11 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
     /**
      * This fragment shows experimental features
      */
-    public static class ExperimentalPrefsFragment extends PreferenceFragment {
+    public static class ExperimentalPrefsFragment extends PresetPreferenceFragment {
 
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
-
-            Preferences.setPreferenceManagerFileAndMode(getPreferenceManager());
 
             // Load the preferences from an XML resource
             addPreferencesFromResource(R.xml.experimental_preferences);
